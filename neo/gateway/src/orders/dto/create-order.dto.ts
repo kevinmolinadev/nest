@@ -1,12 +1,11 @@
 import { Type } from "class-transformer"
-import { IsPositive } from "class-validator"
+import { ArrayMinSize, IsArray, ValidateNested } from "class-validator"
+import { CreateOrderItemDto } from "./create-order-item.dto"
 
 export class CreateOrderDto {
-    @Type(() => Number)
-    @IsPositive()
-    totalAmount: number
-
-    @Type(() => Number)
-    @IsPositive()
-    totalItems: number
+    @IsArray()
+    @ArrayMinSize(1)
+    @ValidateNested({ each: true })
+    @Type(() => CreateOrderItemDto)
+    items: CreateOrderItemDto[]
 }
