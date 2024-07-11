@@ -1,6 +1,5 @@
 import { Type } from "class-transformer";
-import { IsEnum, IsOptional, IsPositive } from "class-validator";
-import { OrderStatus } from "src/orders/entities/order.entity";
+import { IsOptional, IsPositive } from "class-validator";
 
 export class PaginationDto {
     @IsOptional()
@@ -12,10 +11,4 @@ export class PaginationDto {
     @Type(() => Number)
     @IsPositive()
     limit: number = 10
-
-    @IsOptional()
-    @IsEnum(OrderStatus, {
-        message: `The value of the state can only be: ${Object.values(OrderStatus)}`
-    })
-    status?: OrderStatus;
 }

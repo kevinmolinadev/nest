@@ -5,7 +5,7 @@ export enum OrderStatus {
 }
 
 interface Props {
-    id: number,
+    id: string,
     totalAmount: number,
     totalItems: number,
     status: OrderStatus,
@@ -16,7 +16,7 @@ interface Props {
 }
 
 export class Order {
-    private readonly id: number;
+    private readonly id: string;
     private readonly totalAmount: number;
     private readonly totalItems: number;
     private readonly status: OrderStatus;

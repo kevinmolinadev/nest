@@ -2,22 +2,66 @@ import { Inject, Injectable } from '@nestjs/common';
 import { CreateOrderDto } from './dto/create-order.dto';
 import { UpdateOrderDto } from './dto/update-order.dto';
 import { IOrderRepository, ORDER_REPOSITORY_PROVIDER } from './repositories/repository';
-import { PaginationDto } from 'src/shared/dto/pagination.dto';
+import { ClientProxy, RpcException } from '@nestjs/microservices';
+import { ProductPatter, Services } from 'src/config';
+import { OrderPaginationDto } from './dto/order-pagination.dto';
+import { firstValueFrom } from 'rxjs';
+import { CreateOrderItemDto, OrderItemService } from 'src/order-items';
 
 @Injectable()
 export class OrdersService {
-  constructor(@Inject(ORDER_REPOSITORY_PROVIDER) private readonly orderRepository: IOrderRepository) { }
+  constructor(
+    private readonly orderItemService: OrderItemService,
+    @Inject(ORDER_REPOSITORY_PROVIDER) private readonly orderRepository: IOrderRepository,
+    @Inject(Services.Product) private readonly productMS: ClientProxy
+  ) { }
 
-  create(createOrderDto: CreateOrderDto) {
-    return this.orderRepository.create(createOrderDto)
+  private async getProductsData(items: CreateOrderItemDto[]): Promise<Record<string, any>[]> {
+    const [productIds, quantities] = items.reduce((acc, item) => {
+      const updatedProductIds = [...acc[0], item.idProduct];
+      const updatedQuantities = { ...acc[1], [item.idProduct]: item.quantity };
+
+      return [
+        updatedProductIds,
+        updatedQuantities
+      ]
+    }, [[], {}]) as [number[], { [key: string]: number }];
+
+    const data: any[] = await firstValueFrom(this.productMS.send(ProductPatter.validateProducts, productIds));
+    return data.map(({ id, name, price }) => ({ id, name, price, quantity: quantities[id] }));
   }
 
-  findAll(pagination: PaginationDto) {
+  async create(createOrderDto: CreateOrderDto) {
+    try {
+      const productsData = await this.getProductsData(createOrderDto.items);
+      const totalAmount = productsData.reduce((acc, item) => acc + (item.price * item.quantity), 0);
+
+      createOrderDto.totalItems = productsData.length;
+      createOrderDto.totalAmount = totalAmount;
+
+      const order = await this.orderRepository.create(createOrderDto)
+
+      return {
+        ...order,
+        orderItems: productsData
+      }
+    } catch (error) {
+      throw new RpcException(error);
+    }
+  }
+
+  findAll(pagination: OrderPaginationDto) {
     return this.orderRepository.getAll(pagination);
   }
 
-  findOne(id: string) {
-    return this.orderRepository.getOne(id);
+  async findOne(id: string) {
+    const { data } = await this.orderItemService.findAll(undefined, { idOrder: id })
+    const orderItems = await this.getProductsData(data as []);
+    const order = await this.orderRepository.getOne(id);
+    return {
+      ...order,
+      orderItems
+    }
   }
 
   update(id: string, updateOrderDto: UpdateOrderDto) {

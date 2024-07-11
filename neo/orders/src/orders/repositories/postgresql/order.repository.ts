@@ -1,17 +1,17 @@
-import { Order, OrderStatus } from "src/orders/entities/order.entity";
 import { IOrderRepository, Records } from "../repository";
 import { Injectable, NotFoundException } from "@nestjs/common";
 import { PostgreSQL } from "src/data";
 import { RpcException } from "@nestjs/microservices";
-import { PaginationDto } from "src/shared/dto/pagination.dto";
 import { CreateOrderDto } from "src/orders/dto/create-order.dto";
 import { UpdateOrderDto } from "src/orders/dto/update-order.dto";
+import { Order } from "src/orders/entities/order.entity";
+import { OrderPaginationDto } from "src/orders/dto/order-pagination.dto";
 
 @Injectable()
 export class OrderRepositoryPostgreSQL implements IOrderRepository {
     constructor(private readonly db: PostgreSQL) { }
 
-    async getAll(pagination: PaginationDto): Promise<Records> {
+    async getAll(pagination: OrderPaginationDto): Promise<Records> {
         const { page, limit, status } = pagination;
         const [total, data] = await Promise.all([
             this.db.orders.count({
@@ -43,7 +43,16 @@ export class OrderRepositoryPostgreSQL implements IOrderRepository {
     }
 
     async create(createDto: CreateOrderDto): Promise<Order> {
-        const item = await this.db.orders.create({ data: createDto })
+        const item = await this.db.orders.create({
+            data: {
+                ...createDto.getData,
+                orderItems: {
+                    createMany: {
+                        data: createDto.items
+                    }
+                }
+            }
+        })
         return Order.fromObject(item);
     }
 

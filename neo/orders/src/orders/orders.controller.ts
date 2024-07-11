@@ -4,7 +4,7 @@ import { OrdersService } from './orders.service';
 import { CreateOrderDto } from './dto/create-order.dto';
 import { UpdateOrderDto } from './dto/update-order.dto';
 import { Pattern } from 'src/config';
-import { PaginationDto } from 'src/shared/dto/pagination.dto';
+import { OrderPaginationDto } from './dto/order-pagination.dto';
 
 @Controller()
 export class OrdersController {
@@ -16,7 +16,7 @@ export class OrdersController {
   }
 
   @MessagePattern(Pattern.find)
-  findAll(@Payload() paginationDto: PaginationDto) {
+  findAll(@Payload() paginationDto: OrderPaginationDto) {
     return this.ordersService.findAll(paginationDto);
   }
 
