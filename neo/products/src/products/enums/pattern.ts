@@ -3,5 +3,6 @@ export enum ProductPattern {
     findOne = "findOne",
     create = "create",
     update = "update",
-    delete = "delete"
+    delete = "delete",
+    validateProducts = "validateProducts",
 }

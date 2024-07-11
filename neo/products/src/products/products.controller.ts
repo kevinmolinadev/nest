@@ -1,4 +1,4 @@
-import { Controller, Get, Post, Body, Patch, Param, Delete, ParseIntPipe, Logger } from '@nestjs/common';
+import { Controller } from '@nestjs/common';
 import { ProductsService } from './products.service';
 import { CreateProductDto } from './dto/create-product.dto';
 import { UpdateProductDto } from './dto/update-product.dto';
@@ -21,7 +21,7 @@ export class ProductsController {
   }
 
   @MessagePattern(ProductPattern.findOne)
-  findOne(@Payload('id', ParseIntPipe) id: number) {
+  findOne(@Payload('id') id: number) {
     return this.productsService.findOne(id);
   }
 
@@ -30,8 +30,13 @@ export class ProductsController {
     return this.productsService.update(updateProductDto);
   }
 
+  @MessagePattern(ProductPattern.validateProducts)
+  validateProducts(@Payload() ids: number[]) {
+    return this.productsService.validateProducts(ids);
+  }
+
   @MessagePattern(ProductPattern.delete)
-  remove(@Payload('id', ParseIntPipe) id: number) {
+  remove(@Payload('id') id: number) {
     return this.productsService.remove(id);
   }
 }

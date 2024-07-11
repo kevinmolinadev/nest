@@ -1,4 +1,4 @@
-import { Injectable, Logger, NotFoundException } from "@nestjs/common";
+import { BadRequestException, Injectable, NotFoundException } from "@nestjs/common";
 import { RpcException } from "@nestjs/microservices";
 import { SQLite } from "src/data";
 import { IProductDatasource, Pagination, Records } from "src/domain";
@@ -9,6 +9,19 @@ import { Product } from "src/products/entities/product.entity";
 @Injectable()
 export class SQLiteProductDatasource implements IProductDatasource {
     constructor(private readonly db: SQLite) { }
+
+    async validateProductsById(ids: number[]): Promise<Product[]> {
+        const data = await this.db.products.findMany({
+            where: {
+                id: {
+                    in: ids
+                },
+                available: true,
+            }
+        })
+        if (ids.length !== data.length) throw new RpcException(new BadRequestException("One or more products do not exist"))
+        return data.map(Product.fromObject);
+    }
 
     async getAll(pagination: Pagination): Promise<Records<Product>> {
         const { limit, page } = pagination;

@@ -24,6 +24,11 @@ export class ProductsService {
     return this.datasource.update(updateProductDto)
   }
 
+  validateProducts(ids: number[]) {
+    ids = Array.from(new Set(ids));
+    return this.datasource.validateProductsById(ids);
+  }
+
   async remove(id: number) {
     await this.datasource.delete(id);
     return { message: `The product with id #${id} deleted` };
