@@ -5,7 +5,9 @@ import { Logger, ValidationPipe } from '@nestjs/common';
 import { RpcExceptionFilter } from './shared';
 
 async function bootstrap() {
-  const app = await NestFactory.create(AppModule);
+  const app = await NestFactory.create(AppModule, {
+    rawBody: true,
+  });
 
   app.setGlobalPrefix("api");
 

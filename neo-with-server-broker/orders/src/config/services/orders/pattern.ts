@@ -6,4 +6,5 @@ export enum OrderPattern {
     create = `${Services.Order}.create`,
     update = `${Services.Order}.update`,
     delete = `${Services.Order}.delete`,
+    paidSuccess = `${Services.Order}.paidSuccess`
 }

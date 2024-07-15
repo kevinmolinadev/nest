@@ -11,18 +11,4 @@ export class UpdateOrderDto extends PartialType(CreateOrderDto) {
     message: `The value of the state can only be: ${Object.values(OrderStatus)}`
   })
   status: OrderStatus;
-
-  get values() {
-    if (this.status === OrderStatus.COMPLETED) {
-      return {
-        status: this.status,
-        paid: true,
-        paidAt: new Date()
-      }
-    } else {
-      return {
-        status: this.status
-      }
-    }
-  }
 }

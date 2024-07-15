@@ -5,7 +5,7 @@ import { Services } from 'src/config';
 import { PaginationDto } from 'src/shared/dto/pagination.dto';
 import { CreateProductDto } from './dto/create-product.dto';
 import { UpdateProductDto } from './dto/update-product.dto';
-import { CrudPattern } from 'src/shared';
+import { ProductPattern } from './pattern';
 
 @Controller('products')
 export class ProductsController {
@@ -13,7 +13,7 @@ export class ProductsController {
 
   @Post()
   create(@Body() createProductDto: CreateProductDto) {
-    return this.client.send(`${Services.Product}.${CrudPattern.create}`, createProductDto)
+    return this.client.send(ProductPattern.create, createProductDto)
       .pipe(catchError(e => {
         throw new RpcException(e)
       }));
@@ -21,7 +21,7 @@ export class ProductsController {
 
   @Get()
   findAll(@Query() paginationDto: PaginationDto) {
-    return this.client.send(`${Services.Product}.${CrudPattern.getAll}`, paginationDto)
+    return this.client.send(ProductPattern.getAll, paginationDto)
       .pipe(catchError(e => {
         throw new RpcException(e)
       }));
@@ -29,7 +29,7 @@ export class ProductsController {
 
   @Get(':id')
   findOne(@Param('id', ParseIntPipe) id: number) {
-    return this.client.send(`${Services.Product}.${CrudPattern.getOne}`, { id })
+    return this.client.send(ProductPattern.getOne, { id })
       .pipe(catchError(e => {
         throw new RpcException(e)
       }));
@@ -37,7 +37,7 @@ export class ProductsController {
 
   @Patch(':id')
   update(@Param('id', ParseIntPipe) id: number, @Body() updateProductDto: UpdateProductDto) {
-    return this.client.send(`${Services.Product}.${CrudPattern.update}`, { id, ...updateProductDto })
+    return this.client.send(ProductPattern.update, { id, ...updateProductDto })
       .pipe(catchError(e => {
         throw new RpcException(e)
       }));
@@ -45,7 +45,7 @@ export class ProductsController {
 
   @Delete(':id')
   remove(@Param('id', ParseIntPipe) id: number) {
-    return this.client.send(`${Services.Product}.${CrudPattern.delete}`, { id })
+    return this.client.send(ProductPattern.delete, { id })
       .pipe(catchError(e => {
         throw new RpcException(e)
       }));

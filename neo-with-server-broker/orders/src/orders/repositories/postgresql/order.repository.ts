@@ -6,6 +6,7 @@ import { CreateOrderDto } from "src/orders/dto/create-order.dto";
 import { UpdateOrderDto } from "src/orders/dto/update-order.dto";
 import { Order } from "src/orders/entities/order.entity";
 import { OrderPaginationDto } from "src/orders/dto/order-pagination.dto";
+import { PaidOrderDto } from "src/orders/dto/paid-order.dto";
 
 @Injectable()
 export class OrderRepositoryPostgreSQL implements IOrderRepository {
@@ -62,9 +63,32 @@ export class OrderRepositoryPostgreSQL implements IOrderRepository {
             where: {
                 id,
             },
-            data: updateOrderDto.values
+            data: {
+                status: updateOrderDto.status
+            }
         });
         return Order.fromObject(updatedItem);
     }
 
+    async paidOrder(paidOrderDto: PaidOrderDto): Promise<void> {
+        const { id, receipt } = paidOrderDto;
+        const order = await this.getOne(id);
+        if (!order.getPaid) {
+            await this.db.orders.update({
+                where: {
+                    id
+                },
+                data: {
+                    status: "COMPLETED",
+                    paid: true,
+                    paidAt: new Date(),
+                    orderReceipts: {
+                        create: {
+                            receipt
+                        }
+                    }
+                },
+            })
+        }
+    }
 }

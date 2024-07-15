@@ -7,6 +7,7 @@ import { ProductPattern, Services } from 'src/config';
 import { OrderPaginationDto } from './dto/order-pagination.dto';
 import { firstValueFrom } from 'rxjs';
 import { CreateOrderItemDto, OrderItemService } from 'src/order-items';
+import { PaidOrderDto } from './dto/paid-order.dto';
 
 @Injectable()
 export class OrdersService {
@@ -67,6 +68,10 @@ export class OrdersService {
 
   update(id: string, updateOrderDto: UpdateOrderDto) {
     return this.orderRepository.updateStatus(id, updateOrderDto);
+  }
+
+  paidOrder(paidOrderDto: PaidOrderDto) {
+    return this.orderRepository.paidOrder(paidOrderDto);
   }
 
 }

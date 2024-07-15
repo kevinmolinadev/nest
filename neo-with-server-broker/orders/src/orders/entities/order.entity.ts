@@ -36,6 +36,10 @@ export class Order {
         this.updatedAt = props.updatedAt;
     }
 
+    get getPaid() {
+        return this.paid;
+    }
+
     static fromObject(object: Record<keyof Props, any>) {
         object.totalAmount = Number(object.totalAmount);
         return new Order(object);

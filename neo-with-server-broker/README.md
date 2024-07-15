@@ -3,13 +3,25 @@
 ## Descripción
 NEO es un sistema de ventas de productos desarrollado con [NestJS](https://nestjs.com/), un framework progresivo de Node.js. Este proyecto utiliza una arquitectura de microservicios para garantizar una aplicación escalable y eficiente.
 
-## Proyecto Actual
+## Entorno de desarrollo local
+1. Clonar el repositorio
+2. Iniciar un servidor Nats
+- Mediante Docker: `docker run -d --name nats-server -p 4222:4222 -p 8222:8222 nats:alpine`
+- [Servidor Nats](https://nats.io)
+3. Seguir las instrucciones de instalación de cada microservicio en sus respectivos README.md
+
+## Entorno de desarrollo mediante Docker
+1. Clonar el repositorio
+2. Crear un archivo .env basado en el .env.example
+3. Ejecutar el archivo `docker-compose.yml` con el comando `docker compose up --build`
+
+## Proyecto 
 El sistema NEO se compone de los siguientes microservicios:
 - **Gateway**: Puerta de enlace que conecta los microservicios y actúa como el punto de entrada al sistema NEO.
 - **Order Service**: Gestiona las órdenes de compra. Utiliza una base de datos PostgreSQL.
 - **Product Service**: Gestiona los productos. Utiliza una base de datos SQLite.
 
-Actualmente, al momento de crear una orden, el Order Service verifica que los productos incluidos en la orden existen en el Product Service a través de una conexión TCP directa. Si bien esta implementación asegura la verificación en tiempo real, genera un fuerte acoplamiento entre los microservicios.
+El sistema al momento de crear una orden, el Order Service verifica que los productos incluidos en la orden existen en el Product Service a través de una conexión TCP directa. Si bien esta implementación asegura la verificación en tiempo real, genera un fuerte acoplamiento entre los microservicios.
 
 ## Server Broker - Servidor Intermediario
 Un servidor broker suele ser un software o servicio que gestiona y coordina las interacciones entre clientes y servidores, es un intermediario que facilita la comunicación entre diferentes componentes de un sistema distribuido. a menudo facilitando la comunicación, el equilibrio de carga, la gestión de recursos o la intermediación de solicitudes
@@ -26,13 +38,14 @@ Para abordar los desafíos de acoplamiento y escalabilidad en el proyecto NEO, s
 ## Implementación con NATS
 Con la introducción de NATS como nuestro server broker, la arquitectura del proyecto NEO se modifica de la siguiente manera:
 
-### Nueva Arquitectura
+### Proyecto actual
 - **Gateway**: Ahora se conecta a NATS para la transmisión y recepción de mensajes.
 - **Order Service**: Se conecta a NATS para recibir mensajes de verificación de productos y para enviar mensajes de creación de órdenes.
 - **Product Service**: Se conecta a NATS para recibir solicitudes de verificación de productos y para enviar respuestas de disponibilidad de productos.
 
+- **Payment Service**: Se conecta a NATS para recibir mensajes de creación de órdenes y para enviar mensajes de confirmación de pago.
+
 ### Ventajas de la Nueva Implementación
 - **Desacoplamiento**: Los microservicios ya no dependen directamente unos de otros. La comunicación se realiza a través de NATS, lo que reduce la interdependencia.
 - **Escalabilidad**: La introducción de nuevos microservicios es más sencilla y no requiere modificaciones en los servicios existentes.
-- **Fiabilidad**: NATS proporciona alta disponibilidad y baja latencia, lo que mejora el rendimiento del sistema.
 - **Flexibilidad**: Facilita la implementación de nuevas funcionalidades y la adaptación a cambios en los requisitos del negocio.

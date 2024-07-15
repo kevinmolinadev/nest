@@ -2,7 +2,7 @@ import { Controller } from '@nestjs/common';
 import { ProductsService } from './products.service';
 import { CreateProductDto } from './dto/create-product.dto';
 import { UpdateProductDto } from './dto/update-product.dto';
-import { Ctx, MessagePattern, NatsContext, Payload } from '@nestjs/microservices';
+import { MessagePattern, Payload } from '@nestjs/microservices';
 import { ProductPattern } from '../config';
 import { PaginationDto } from 'src/shared/dto/pagination.dto';
 
@@ -16,7 +16,7 @@ export class ProductsController {
   }
 
   @MessagePattern(ProductPattern.getAll)
-  findAll(@Payload() pagination: PaginationDto, @Ctx() ctx: NatsContext) {
+  findAll(@Payload() pagination: PaginationDto) {
     return this.productsService.findAll(pagination);
   }
 

@@ -5,6 +5,6 @@ import { PrismaClient } from '@prisma/client';
 export class PostgreSQL extends PrismaClient implements OnModuleInit {
     async onModuleInit() {
         await this.$connect();
-        Logger.log("PostgreSQL conected", "DB")
+        Logger.log("PostgreSQL connected", "DB")
     }
 }
