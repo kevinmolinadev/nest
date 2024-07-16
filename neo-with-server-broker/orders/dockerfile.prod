@@ -1,0 +1,28 @@
+FROM node:20-alpine AS image
+
+FROM image AS deps
+WORKDIR /app
+COPY package.json ./
+RUN npm install
+
+FROM image AS builder
+WORKDIR /app
+COPY --from=deps /app/node_modules ./node_modules
+COPY . .
+RUN npm run build
+
+FROM image AS deps-prod
+ARG DATABASE_URL
+ENV DATABASE_URL=$DATABASE_URL
+WORKDIR /app
+COPY --from=builder /app/package.json /app/prisma ./
+RUN npm install --omit=dev
+RUN npx prisma migrate deploy
+
+FROM image AS prod
+RUN adduser --system nest
+WORKDIR /app
+COPY --from=builder /app/dist ./dist
+COPY --from=deps-prod /app/node_modules ./node_modules
+USER nest
+CMD ["node", "dist/main.js"]

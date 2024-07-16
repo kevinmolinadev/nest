@@ -1,0 +1,111 @@
+services:
+  nats-server:
+    image: nats:2.10-alpine
+    restart: always
+    ports:
+      - 8222:8222
+
+  gateway:
+    build:
+      context: ./gateway
+      dockerfile: dockerfile.prod
+    restart: always
+    ports:
+      - ${GATEWAY_PORT}:${GATEWAY_PORT}
+    environment:
+      - PORT=${GATEWAY_PORT}
+      - NATS_SERVERS=${NATS_SERVERS}
+    command: node dist/main.js
+
+  products:
+    build:
+      context: ./products
+      dockerfile: dockerfile.prod
+      args:
+        - DATABASE_URL=${PRODUCT_DATABASE_URL}
+    restart: always
+    volumes:
+      - ./products/src:/app/src
+    environment:
+      - PORT=3001
+      - DATABASE_URL=${PRODUCT_DATABASE_URL}
+      - NATS_SERVERS=${NATS_SERVERS}
+    command: node dist/main.js
+    depends_on:
+      - nats-server
+
+  orders-db:
+    restart: always
+    image: postgres:15-alpine
+    environment:
+      POSTGRES_USER: ${ORDER_DATABASE_USER}
+      POSTGRES_PASSWORD: ${ORDER_DATABASE_PASSWORD}
+      POSTGRES_DB: ${ORDER_DATABASE_NAME}
+    ports:
+      - 5432:5432
+    volumes:
+      - ./postgres:/var/lib/postgresql/data
+
+  orders:
+    build:
+      context: ./orders
+      dockerfile: dockerfile.prod
+      args:
+        - DATABASE_URL=${ORDER_DATABASE_URL}
+    restart: always
+    volumes:
+      - ./orders/src:/app/src
+    environment:
+      - PORT=3000
+      - DATABASE_URL=${ORDER_DATABASE_URL}
+      - NATS_SERVERS=${NATS_SERVERS}
+    command: node dist/main.js
+    depends_on:
+      - nats-server
+      - orders-db
+
+  payment:
+    build:
+      context: ./payments
+      dockerfile: dockerfile.prod
+    restart: always
+    volumes:
+      - ./payments/src:/app/src
+    environment:
+      - PORT=${PAYMENT_PORT}
+      - NATS_SERVERS=${NATS_SERVERS}
+      - STRIPE_SECRET=${STRIPE_SECRET}
+      - STRIPE_WEBHOOK_SECRET=${STRIPE_WEBHOOK_SECRET}
+      - STRIPE_SUCCESS_URL=${STRIPE_SUCCESS_URL}
+      - STRIPE_CANCEL_URL=${STRIPE_CANCEL_URL}
+    command: node dist/main.js
+    depends_on:
+      - nats-server
+
+  auth-db:
+    restart: always
+    image: mongo:6.0.6
+    ports:
+      - 27017:27017
+    volumes:
+      - ./mongo:/data/db
+    environment:
+      - MONGO_INITDB_ROOT_USERNAME=${AUTH_DATABASE_USER}
+      - MONGO_INITDB_ROOT_PASSWORD=${AUTH_DATABASE_PASSWORD}
+
+  auth:
+    build:
+      context: ./auth
+      dockerfile: dockerfile.prod
+    restart: always
+    volumes:
+      - ./auth/src:/app/src
+    environment:
+      - NATS_SERVERS=${NATS_SERVERS}
+      - DATABASE_URL=${AUTH_DATABASE_URL}
+      - JWT_SECRET=${JWT_SECRET}
+      - JWT_EXPIRES_IN=${JWT_EXPIRES_IN}
+    command: node dist/main.js
+    depends_on:
+      - nats-server
+      - auth-db
