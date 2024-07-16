@@ -1,11 +1,9 @@
-version: '3.9'
 services:
   nats-server:
     image: nats:2.10-alpine
     restart: always
     ports:
       - 8222:8222
-      - 4222:4222
 
   gateway:
     build: ./gateway
@@ -73,3 +71,29 @@ services:
     command: npm run start:dev
     depends_on:
       - nats-server
+
+  auth-db:
+    restart: always
+    image: mongo:6.0.6
+    ports:
+      - 27017:27017
+    volumes:
+      - ./mongo:/data/db
+    environment:
+      - MONGO_INITDB_ROOT_USERNAME=${AUTH_DATABASE_USER}
+      - MONGO_INITDB_ROOT_PASSWORD=${AUTH_DATABASE_PASSWORD}
+
+  auth:
+    build: ./auth
+    restart: always
+    volumes:
+      - ./auth/src:/app/src
+    environment:
+      - NATS_SERVERS=${NATS_SERVERS}
+      - DATABASE_URL=${AUTH_DATABASE_URL}
+      - JWT_SECRET=${JWT_SECRET}
+      - JWT_EXPIRES_IN=${JWT_EXPIRES_IN}
+    command: npm run start:dev
+    depends_on:
+      - nats-server
+      - auth-db

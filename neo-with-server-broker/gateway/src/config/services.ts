@@ -3,4 +3,5 @@ export enum Services {
     Product = "products",
     Order = "orders",
     Payment = "payments",
+    Auth = "auth",
 }
